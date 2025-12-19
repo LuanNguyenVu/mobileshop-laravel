@@ -1,0 +1,30 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up()
+    {
+        Schema::table('products', function (Blueprint $table) {
+            $table->string('brand')->nullable()->after('product_name'); // Hãng (Apple, Samsung...)
+            $table->string('os')->nullable()->after('brand'); // Hệ điều hành (iOS, Android...)
+            $table->string('type')->nullable()->after('os'); // Loại (Điện thoại, Tablet...)
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('products', function (Blueprint $table) {
+            //
+        });
+    }
+};

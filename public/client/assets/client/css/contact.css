@@ -1,0 +1,204 @@
+/* --- GLOBAL --- */
+.contact-page {
+    background-color: #f8f9fa;
+    overflow-x: hidden;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* --- HERO SECTION --- */
+.contact-hero {
+    background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1516387938699-a93567ec168e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80');
+    height: 350px;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: white;
+    margin-bottom: -50px; /* Hiệu ứng đè chồng */
+    padding-bottom: 50px;
+}
+
+.contact-hero h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+
+.contact-hero p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+/* --- INFO CARDS (Floating) --- */
+.info-cards-container {
+    max-width: 1200px;
+    margin: 0 auto 50px;
+    padding: 0 20px;
+    position: relative;
+    z-index: 10;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+}
+
+.info-card {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.info-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(204, 0, 0, 0.15);
+}
+
+.icon-box {
+    width: 60px; height: 60px;
+    background: #ffe6e6;
+    color: #cc0000;
+    font-size: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+}
+
+.info-card h3 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.info-card p, .info-card a {
+    color: #666;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    text-decoration: none;
+}
+
+/* --- MAIN CONTENT (FORM & MAP) --- */
+.main-content {
+    max-width: 1200px;
+    margin: 0 auto 80px;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 50px;
+}
+
+/* Form Styles */
+.contact-form-wrapper {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+}
+
+.form-title {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 30px;
+    font-weight: 700;
+    position: relative;
+    padding-bottom: 15px;
+}
+
+.form-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 60px; height: 4px;
+    background: #cc0000;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 15px;
+    transition: 0.3s;
+    background: #fdfdfd;
+}
+
+.form-control:focus {
+    border-color: #cc0000;
+    outline: none;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(204, 0, 0, 0.1);
+}
+
+.btn-submit {
+    background: #cc0000;
+    color: white;
+    padding: 12px 30px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+    text-transform: uppercase;
+    width: 100%;
+}
+
+.btn-submit:hover {
+    background: #990000;
+    transform: translateY(-2px);
+}
+
+/* Map & Support Styles */
+.map-wrapper {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    height: 350px;
+    margin-bottom: 30px;
+}
+
+.support-card {
+    background: #333; /* Dark theme for contrast */
+    color: white;
+    padding: 30px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.support-card img {
+    width: 100%;
+    max-width: 200px;
+    border-radius: 8px;
+    margin: 15px 0;
+    opacity: 0.8;
+}
+
+.support-phone {
+    font-size: 2rem;
+    color: #ff4d4d;
+    font-weight: bold;
+    display: block;
+    margin: 10px 0;
+    text-decoration: none;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 992px) {
+    .main-content { grid-template-columns: 1fr; }
+    .info-grid { grid-template-columns: 1fr; }
+}

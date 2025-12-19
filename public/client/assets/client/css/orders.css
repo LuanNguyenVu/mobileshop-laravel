@@ -1,0 +1,226 @@
+:root {
+    --primary-color: #d70018;
+    --text-main: #333;
+    --text-light: #666;
+    --bg-light: #f4f6f8;
+    --white: #ffffff;
+    --border-color: #e0e0e0;
+    --radius: 8px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.08);
+}
+
+/* --- LAYOUT CHUNG --- */
+.order-page-container {
+    padding: 40px 0;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.page-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--primary-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.page-title span {
+    font-size: 14px;
+    font-weight: normal;
+    background: #eee;
+    padding: 5px 10px;
+    border-radius: 20px;
+    color: #555;
+}
+
+/* --- EMPTY STATE (Khi không có đơn) --- */
+.empty-order-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    border: 1px dashed var(--border-color);
+}
+
+.empty-order-state img {
+    width: 150px;
+    margin-bottom: 20px;
+    opacity: 0.8;
+}
+
+.empty-order-state p {
+    font-size: 16px;
+    color: var(--text-light);
+    margin-bottom: 20px;
+}
+
+/* --- TABLE STYLES (Dùng chung) --- */
+.table-wrapper {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden; /* Bo góc cho table */
+    border: 1px solid var(--border-color);
+}
+
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.custom-table thead {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.custom-table th {
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-light);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.custom-table td {
+    padding: 15px;
+    border-bottom: 1px solid #f1f1f1;
+    color: var(--text-main);
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+.custom-table tr:last-child td { border-bottom: none; }
+.custom-table tr:hover td { background-color: #fafafa; }
+
+/* Cột đặc biệt */
+.text-center { text-align: center !important; }
+.text-right { text-align: right !important; }
+.order-code-link {
+    color: #007bff;
+    font-weight: 600;
+    transition: 0.2s;
+}
+.order-code-link:hover { text-decoration: underline; color: #0056b3; }
+
+.price-text {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+/* --- STATUS BADGES --- */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    display: inline-block;
+}
+
+.status-pending { background-color: #fff3cd; color: #856404; }   /* Vàng */
+.status-processing { background-color: #cce5ff; color: #004085; } /* Xanh dương */
+.status-shipped { background-color: #d1ecf1; color: #0c5460; }    /* Xanh ngọc */
+.status-delivered { background-color: #d4edda; color: #155724; }  /* Xanh lá */
+.status-cancelled { background-color: #f8d7da; color: #721c24; }  /* Đỏ */
+
+/* --- ORDER DETAIL SPECIFIC --- */
+.order-meta {
+    margin-bottom: 30px;
+    color: var(--text-light);
+    font-size: 14px;
+}
+
+/* Grid thông tin người nhận/người mua */
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.info-card {
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 25px;
+    box-shadow: var(--shadow-sm);
+}
+
+.info-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.info-card h3 i { color: var(--primary-color); }
+
+.info-row { margin-bottom: 10px; font-size: 14px; }
+.info-row strong { color: var(--text-main); width: 100px; display: inline-block; }
+.info-row span { color: var(--text-light); }
+
+/* Thanh toán & Trạng thái */
+.payment-status-box {
+    background: #fdfdfe;
+    border: 1px solid #e1e4e8;
+    padding: 20px;
+    border-radius: var(--radius);
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Total Row in Detail */
+.total-row td {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary-color);
+    background-color: #fffbfb;
+}
+
+/* Buttons */
+.btn-primary-action {
+    background: var(--primary-color);
+    color: white;
+    padding: 10px 25px;
+    border-radius: 5px;
+    font-weight: 600;
+    transition: 0.3s;
+}
+.btn-primary-action:hover { background: #b20013; color: white; transform: translateY(-2px); }
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--text-light);
+    font-weight: 500;
+    padding: 10px 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background: white;
+    transition: 0.3s;
+}
+.btn-back:hover { background: #f8f9fa; color: var(--text-main); }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .info-grid { grid-template-columns: 1fr; }
+    .table-wrapper { overflow-x: auto; }
+    .custom-table th, .custom-table td { white-space: nowrap; }
+    .payment-status-box { flex-direction: column; align-items: flex-start; gap: 10px; }
+}
