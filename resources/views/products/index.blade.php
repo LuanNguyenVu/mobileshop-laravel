@@ -142,42 +142,38 @@
     @endif
     {{-- === KẾT THÚC PHẦN BANNER === --}}
     
-    {{-- PHẦN 2: BỘ LỌC VÀ TÌM KIẾM (CŨ) --}}
     <div class="search-sort-area">
         <h3>TÌM KIẾM VÀ BỘ LỌC</h3>
         <form action="{{ route('products.index') }}" method="GET" class="filter-row">
-            @if(request('brand'))
-                <input type="hidden" name="brand" value="{{ request('brand') }}">
-            @endif
-
+            
+            {{-- 1. Ô Tìm kiếm từ khóa --}}
             <input type="text" name="keyword" value="{{ request('keyword') }}" placeholder="Tên sản phẩm...">
             
-            <select name="os">
-                <option value="">-- Hệ Điều Hành --</option>
-                @foreach ($os_options as $os)
-                    <option value="{{ $os }}" {{ request('os') == $os ? 'selected' : '' }}>
-                        {{ $os }}
-                    </option>
-                @endforeach
-            </select>
-            
-            <select name="type">
-                <option value="">-- Loại Sản Phẩm --</option>
-                @foreach ($product_types as $type)
-                    <option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>
-                        {{ $type }}
-                    </option>
-                @endforeach
-            </select>
-            
+            {{-- 2. Ô Sắp xếp (Thay cho Hệ điều hành cũ) --}}
+            {{-- Gộp cả chức năng sắp xếp Mới nhất/Đánh giá vào đây luôn cho gọn --}}
             <select name="sort">
                 <option value="default" {{ request('sort') == 'default' ? 'selected' : '' }}>Mới nhất</option>
+                <option value="price_asc" {{ request('sort') == 'price_asc' ? 'selected' : '' }}>Giá: Thấp đến Cao</option>
+                <option value="price_desc" {{ request('sort') == 'price_desc' ? 'selected' : '' }}>Giá: Cao đến Thấp</option>
                 <option value="rating_desc" {{ request('sort') == 'rating_desc' ? 'selected' : '' }}>Đánh giá cao</option>
             </select>
             
+            {{-- 3. Ô Chọn Hãng (Thay cho Loại sản phẩm cũ) --}}
+            <select name="brand">
+                <option value="">-- Tất cả Hãng --</option>
+                {{-- Danh sách hãng cố định như bạn yêu cầu --}}
+                @foreach (['Apple', 'Samsung', 'OPPO', 'Xiaomi', 'Sony'] as $brand)
+                    <option value="{{ $brand }}" {{ request('brand') == $brand ? 'selected' : '' }}>
+                        {{ $brand }}
+                    </option>
+                @endforeach
+            </select>
+            
+            {{-- Nút Lọc --}}
             <button type="submit"><i class="fas fa-filter"></i> LỌC NGAY</button>
             
-            @if(request()->hasAny(['keyword', 'os', 'type', 'brand']))
+            {{-- Link xóa bộ lọc --}}
+            @if(request()->hasAny(['keyword', 'sort', 'brand']))
                 <a href="{{ route('products.index') }}" style="color: #666; text-decoration: underline; font-size: 14px;">Xóa bộ lọc</a>
             @endif
         </form>

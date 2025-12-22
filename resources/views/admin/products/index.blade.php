@@ -7,6 +7,33 @@
     <h3>Quản Lý Sản Phẩm</h3>
     <a href="{{ route('admin.products.create') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Thêm Mới</a>
 </div>
+<div class="card p-3 mb-3">
+    <form action="{{ route('admin.products.index') }}" method="GET">
+        <div class="row g-3">
+            {{-- Ô tìm kiếm từ khóa --}}
+            <div class="col-md-4">
+                <input type="text" name="keyword" class="form-control" 
+                       placeholder="Nhập tên sản phẩm hoặc mã SP..." 
+                       value="{{ request('keyword') }}">
+            </div>
+
+            {{-- Ô lọc trạng thái --}}
+            <div class="col-md-3">
+                <select name="status" class="form-select">
+                    <option value="">-- Tất cả trạng thái --</option>
+                    <option value="in_stock" {{ request('status') == 'in_stock' ? 'selected' : '' }}>Còn hàng</option>
+                    <option value="out_of_stock" {{ request('status') == 'out_of_stock' ? 'selected' : '' }}>Hết hàng</option>
+                </select>
+            </div>
+
+            {{-- Nút tìm kiếm và Reset --}}
+            <div class="col-md-3 d-flex align-items-center gap-2">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Tìm kiếm</button>
+                <a href="{{ route('admin.products.index') }}" class="btn btn-outline-secondary" title="Làm mới"><i class="fas fa-sync-alt"></i></a>
+            </div>
+        </div>
+    </form>
+</div>
 
 <div class="card p-3">
     <div class="table-responsive">

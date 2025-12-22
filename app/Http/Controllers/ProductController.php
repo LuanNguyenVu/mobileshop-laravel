@@ -6,58 +6,76 @@ use App\Models\Cart; // Nhớ use Model Cart
 use Illuminate\Http\Request;
 use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
+use App\Models\ProductVariant;
 
 class ProductController extends Controller
 {
-    public function index(Request $request)
-    {
-        // Eager Load variants để tính giá nhanh
-        $query = Product::with('variants')->where('status', 'in_stock');
+public function index(Request $request)
+{
+    // Khởi tạo query
+    $query = Product::with('variants')->where('status', 'in_stock');
 
-        // Tìm kiếm & Lọc (Giữ nguyên logic của bạn, nó đã ổn)
-        if ($request->filled('keyword')) {
-            $query->where('product_name', 'like', '%' . $request->keyword . '%');
-        }
-        if ($request->filled('brand')) {
-            $query->where('brand', $request->brand);
-        }
-        if ($request->filled('os')) {
-            $query->where('os', $request->os);
-        }
-        if ($request->filled('type')) {
-            $query->where('type', $request->type);
-        }
+    // 1. Tìm kiếm từ khóa
+    if ($request->filled('keyword')) {
+        $query->where('product_name', 'like', '%' . $request->keyword . '%');
+    }
 
-        // Sắp xếp
-        if ($request->filled('sort')) {
-            switch ($request->sort) {
-                case 'rating_desc':
-                    $query->orderBy('rating', 'desc');
-                    break;
-                case 'default':
-                default:
-                    $query->latest();
-                    break;
-            }
-        } else {
-            $query->latest();
+    // 2. Lọc theo Hãng (Brand)
+    if ($request->filled('brand')) {
+        $query->where('brand', $request->brand);
+    }
+
+    // 3. Xử lý Sắp xếp (Logic quan trọng)
+    if ($request->filled('sort')) {
+        switch ($request->sort) {
+            case 'price_asc': // Giá thấp đến cao
+                // Dùng subquery lấy giá bán thấp nhất của biến thể để sắp xếp
+                $query->addSelect(['min_price' => ProductVariant::select('selling_price')
+                    ->whereColumn('product_id', 'products.id')
+                    ->orderBy('selling_price', 'asc')
+                    ->limit(1)
+                ])->orderBy('min_price', 'asc');
+                break;
+
+            case 'price_desc': // Giá cao đến thấp
+                $query->addSelect(['min_price' => ProductVariant::select('selling_price')
+                    ->whereColumn('product_id', 'products.id')
+                    ->orderBy('selling_price', 'asc')
+                    ->limit(1)
+                ])->orderBy('min_price', 'desc');
+                break;
+
+            case 'rating_desc': // Đánh giá cao
+                $query->orderBy('rating', 'desc');
+                break;
+
+            case 'default':
+            default:
+                $query->latest();
+                break;
         }
-        $headerAds = \App\Models\Advertisement::where('status', 'Active')
+    } else {
+        $query->latest(); // Mặc định là mới nhất
+    }
+
+    // Lấy banner quảng cáo (Code cũ của bạn)
+    $headerAds = \App\Models\Advertisement::where('status', 'Active')
         ->where('display_location', '!=', 'Trang Chủ') 
         ->orderBy('created_at', 'desc')
         ->take(2)
         ->get();
 
-        $products = $query->paginate(15)->withQueryString();
+    // Phân trang
+    $products = $query->paginate(15)->withQueryString();
 
-        // Data tĩnh cho bộ lọc -> Không cần query DB, hardcode cho nhanh
-        $brands = ['Apple', 'Samsung', 'OPPO', 'Xiaomi', 'Sony', 'Huawei'];
-        $os_options = ['Android', 'iOS', 'Khác'];
-        $product_types = ['Điện thoại', 'Tablet', 'Phụ kiện'];
-        $current_brand = $request->brand ?? 'Tất cả';
+    // Các biến phụ trợ cho View
+    $brands = ['Apple', 'Samsung', 'OPPO', 'Xiaomi', 'Sony']; 
+    $os_options = ['Android', 'iOS', 'Khác']; 
+    $product_types = ['Điện thoại', 'Tablet', 'Phụ kiện'];
+    $current_brand = $request->brand ?? 'Tất cả sản phẩm';
 
-        return view('products.index', compact('products', 'brands', 'os_options', 'product_types', 'current_brand', 'headerAds'));
-    }
+    return view('products.index', compact('products', 'brands', 'os_options', 'product_types', 'current_brand', 'headerAds'));
+}
 
     public function show($id)
     {

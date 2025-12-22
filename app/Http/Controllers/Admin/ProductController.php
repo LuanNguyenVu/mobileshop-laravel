@@ -12,9 +12,29 @@ use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(Request $request) // 1. Thêm Request $request vào đây
     {
-        $products = Product::with('variants')->orderBy('id', 'desc')->paginate(10);
+        // 2. Khởi tạo Query Builder (Chưa lấy dữ liệu ngay)
+        $query = Product::with('variants'); 
+
+        // 3. Xử lý tìm kiếm theo từ khóa
+        if ($request->has('keyword') && $request->keyword != '') {
+            $keyword = $request->keyword;
+            $query->where(function($q) use ($keyword) {
+                $q->where('product_name', 'like', '%' . $keyword . '%')
+                  ->orWhere('product_code', 'like', '%' . $keyword . '%');
+            });
+        }
+
+        // 4. Xử lý lọc theo trạng thái
+        if ($request->has('status') && $request->status != '') {
+            $query->where('status', $request->status);
+        }
+
+        // 5. Sắp xếp và Phân trang (Lúc này mới thực thi câu lệnh SQL)
+        $products = $query->orderBy('id', 'desc')->paginate(10);
+
+        // 6. Trả về View
         return view('admin.products.index', compact('products'));
     }
 
@@ -42,10 +62,20 @@ class ProductController extends Controller
                 $file->move(public_path('uploads/products'), $fileName);
                 $imagePath = 'uploads/products/' . $fileName;
             }
+            $generatedCode = $request->product_code;
+            if (empty($generatedCode)) {
+                // Cách 1: Tạo mã ngẫu nhiên (Ví dụ: PROD_6578A9)
+                // $generatedCode = 'PROD_' . strtoupper(uniqid()); 
+
+                // Cách 2: Tạo mã theo tên Hãng + Random số (Ví dụ: SAM-1234)
+                $brandPrefix = $request->brand ? strtoupper(substr($request->brand, 0, 3)) : 'SP';
+                $generatedCode = $brandPrefix . '-' . rand(1000, 9999);
+            }
 
             // 2. Tạo Product
             $product = Product::create([
                 'product_name' => $request->product_name,
+                'product_code' => $generatedCode,
                 'brand' => $request->brand,
                 'type' => $request->type,
                 'product_image' => $imagePath,

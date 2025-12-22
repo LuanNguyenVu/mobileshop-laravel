@@ -149,7 +149,7 @@
 <div id="reviews" class="tab-content">
     <div class="reviews-container">
         
-        {{-- Form viết đánh giá (Chỉ hiện khi đã đăng nhập) --}}
+        {{-- 1. FORM VIẾT ĐÁNH GIÁ --}}
         @auth
             <div class="review-form-box">
                 <h4>Viết đánh giá của bạn</h4>
@@ -172,58 +172,42 @@
             </div>
         @endauth
 
-            <div id="reviews" class="tab-content">
-                <div class="reviews-container">
-                    
-                    {{-- Form viết đánh giá (Chỉ hiện khi đã đăng nhập) --}}
-                    @auth
-                        <div class="review-form-box">
-                            <h4>Viết đánh giá của bạn</h4>
-                            <form action="{{ route('reviews.store', $product->id) }}" method="POST">
-                                @csrf
-                                <div class="star-rating-input">
-                                    <input type="radio" id="star5" name="rating" value="5" checked /><label for="star5" title="5 sao"><i class="fas fa-star"></i></label>
-                                    <input type="radio" id="star4" name="rating" value="4" /><label for="star4" title="4 sao"><i class="fas fa-star"></i></label>
-                                    <input type="radio" id="star3" name="rating" value="3" /><label for="star3" title="3 sao"><i class="fas fa-star"></i></label>
-                                    <input type="radio" id="star2" name="rating" value="2" /><label for="star2" title="2 sao"><i class="fas fa-star"></i></label>
-                                    <input type="radio" id="star1" name="rating" value="1" /><label for="star1" title="1 sao"><i class="fas fa-star"></i></label>
-                                </div>
-                                <textarea name="comment" class="review-textarea" placeholder="Chia sẻ cảm nhận của bạn về sản phẩm..." required></textarea>
-                                <button type="submit" class="btn-submit-review">Gửi Đánh Giá</button>
-                            </form>
+        {{-- 2. DANH SÁCH ĐÁNH GIÁ (Sửa lỗi lồng thẻ div ở đây) --}}
+        <hr style="margin: 30px 0; border-top: 1px solid #eee;">
+        
+        <div class="review-list-section">
+            <h4 style="margin-bottom: 20px;">Đánh giá từ khách hàng ({{ $product->reviews->count() }})</h4>
+            
+            @if($product->reviews->isEmpty())
+                <p style="color: #666; font-style: italic; text-align: center; padding: 20px;">Chưa có đánh giá nào. Hãy là người đầu tiên!</p>
+            @else
+                <div class="review-list">
+                    @foreach($product->reviews as $review)
+                        <div class="review-item">
+                            <div class="review-user">
+                                {{-- Hiển thị Avatar (Nếu user không có avatar thì dùng ảnh mặc định tạo từ tên) --}}
+                                <img src="{{ $review->user && $review->user->avatar_path ? asset($review->user->avatar_path) : 'https://ui-avatars.com/api/?background=random&name='.($review->user->username ?? 'Guest') }}" alt="User">
+                                <span>{{ $review->user->username ?? 'Người dùng ẩn danh' }}</span>
+                            </div>
+                            
+                            <div class="review-stars">
+                                @for($i=1; $i<=5; $i++)
+                                    <i class="{{ $i <= $review->rating ? 'fas checked' : 'far' }} fa-star" style="{{ $i <= $review->rating ? 'color: #ffc107;' : 'color: #ccc;' }}"></i>
+                                @endfor
+                            </div>
+                            
+                            <p class="review-content">{{ $review->comment }}</p>
+                            <div class="review-date" style="font-size: 12px; color: #999; margin-top: 5px;">
+                                {{ $review->created_at->format('d/m/Y H:i') }}
+                            </div>
                         </div>
-                    @else
-                        <div class="alert alert-warning" style="background: #fff3cd; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
-                            Vui lòng <a href="{{ route('login') }}" style="color: #856404; font-weight: bold; text-decoration: underline;">đăng nhập</a> để viết đánh giá.
-                        </div>
-                    @endauth
-
-                    {{-- Danh sách đánh giá --}}
-                    <div class="review-list">
-                        @if($product->reviews->isEmpty())
-                            <p style="color: #666; font-style: italic;">Chưa có đánh giá nào. Hãy là người đầu tiên!</p>
-                        @else
-                            @foreach($product->reviews as $review)
-                                <div class="review-item">
-                                    <div class="review-user">
-                                        <img src="{{ $review->user->avatar_path ? asset($review->user->avatar_path) : 'https://ui-avatars.com/api/?name='.$review->user->username }}" alt="User">
-                                        <span>{{ $review->user->username }}</span>
-                                    </div>
-                                    <div class="review-stars">
-                                        @for($i=1; $i<=5; $i++)
-                                            <i class="{{ $i <= $review->rating ? 'fas' : 'far' }} fa-star"></i>
-                                        @endfor
-                                    </div>
-                                    <p class="review-content">{{ $review->comment }}</p>
-                                    <div class="review-date">{{ $review->created_at->format('d/m/Y H:i') }}</div>
-                                </div>
-                            @endforeach
-                        @endif
-                    </div>
+                    @endforeach
                 </div>
-            </div>
+            @endif
         </div>
+
     </div>
+</div>
 
     {{-- MODAL CẤU HÌNH CHI TIẾT --}}
     <div class="modal-overlay" id="specsModal">
