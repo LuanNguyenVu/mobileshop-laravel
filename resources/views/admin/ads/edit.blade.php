@@ -38,7 +38,7 @@
                     <label class="form-label fw-bold">Vị Trí Hiển Thị</label>
                     <select name="display_location" class="form-select">
                         <option value="Trang Chủ" {{ $ad->display_location == 'Trang Chủ' ? 'selected' : '' }}>Trang Chủ</option>
-                        <option value="Sidebar" {{ $ad->display_location == 'Sidebar' ? 'selected' : '' }}>Sidebar Tin Tức</option>
+                        <option value="Sidebar" {{ $ad->display_location == 'Sidebar' ? 'selected' : '' }}>Sidebar</option>
                     </select>
                 </div>
                 

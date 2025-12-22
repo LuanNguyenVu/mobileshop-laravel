@@ -464,3 +464,132 @@ ul { list-style: none; padding: 0; margin: 0; }
         .slider-nav-btn { display: none; }
         .product-carousel-wrapper { overflow-x: auto; } /* Mobile cho vuốt tay */
     }
+
+            /* === CONTAINER 2 BANNER TRÊN CÙNG === */
+        .hero-promo-section {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            height: 220px;
+            overflow: hidden;
+            perspective: 1500px; /* QUAN TRỌNG: Tạo chiều sâu 3D cho hiệu ứng lật */
+        }
+
+        .promo-card {
+            flex: 1;
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            background: #000;
+            
+            /* === CẤU HÌNH ANIMATION LẬT (FLIP) === */
+            opacity: 0; /* Ẩn đi ban đầu */
+            transform-origin: center top; /* Lật từ cạnh trên xuống (giống biển hiệu) */
+            /* Tên animation - Thời gian - Kiểu nảy (cubic-bezier) - Giữ trạng thái cuối */
+            animation: flipIn 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* Card thứ 2 sẽ lật trễ hơn 0.2s tạo hiệu ứng domino */
+        .promo-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        /* === KEYFRAMES: ĐỊNH NGHĨA CHUYỂN ĐỘNG LẬT === */
+        @keyframes flipIn {
+            0% {
+                opacity: 0;
+                transform: rotateX(-90deg); /* Nằm ngang vuông góc (không nhìn thấy) */
+            }
+            100% {
+                opacity: 1;
+                transform: rotateX(0deg); /* Trở về trạng thái phẳng bình thường */
+            }
+        }
+
+        /* === 1. HIỆU ỨNG TỰ ĐỘNG ZOOM (KEN BURNS) - VẪN GIỮ NGUYÊN === */
+        .promo-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            animation: kenBurns 15s ease-in-out infinite alternate;
+            transform-origin: center center;
+            opacity: 0.9;
+        }
+
+        @keyframes kenBurns {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.15); }
+        }
+
+        /* === 2. HIỆU ỨNG VỆT SÁNG LƯỚT QUA === */
+        .promo-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-25deg);
+            z-index: 2;
+            /* Chạy sau khi lật xong (delay 1s) */
+            animation: shine 4s infinite 1s; 
+        }
+
+        @keyframes shine {
+            0% { left: -100%; }
+            20% { left: 200%; }
+            100% { left: 200%; }
+        }
+
+        /* === NỘI DUNG CHỮ TRÊN BANNER === */
+        .promo-content {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 3;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            pointer-events: none;
+            
+            /* Chữ cũng hiện dần lên cho mượt */
+            opacity: 0;
+            animation: fadeInText 0.5s ease-out forwards;
+            animation-delay: 0.8s; /* Hiện sau khi lật gần xong */
+        }
+
+        @keyframes fadeInText {
+            to { opacity: 1; }
+        }
+
+        .promo-content h3 {
+            font-size: 22px;
+            font-weight: 800;
+            margin: 0 0 5px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .promo-content h3::after {
+            content: '';
+            display: block;
+            width: 50px;
+            height: 3px;
+            background: #d70018;
+            margin-top: 5px;
+            transition: width 0.3s;
+        }
+        
+        .promo-card:hover .promo-content h3::after {
+            width: 100px;
+        }
+
+        @media (max-width: 768px) {
+            .hero-promo-section {
+                flex-direction: column;
+                height: auto;
+            }
+            .promo-card {
+                height: 160px;
+            }
+        }

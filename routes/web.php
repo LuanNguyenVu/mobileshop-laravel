@@ -96,6 +96,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/cart/buy-now', [CartController::class, 'buyNow'])->name('cart.buyNow');
 
     // Thanh toán (Checkout)
+    Route::get('/checkout', [OrderController::class, 'index'])->name('checkout.index');
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
     Route::post('/checkout/place-order', [CheckoutController::class, 'placeOrder'])->name('checkout.placeOrder');
 

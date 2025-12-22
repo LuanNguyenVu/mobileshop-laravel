@@ -68,7 +68,7 @@
                             $price = ($variant->promotional_price > 0) ? $variant->promotional_price : $variant->selling_price;
                         @endphp
                         <div class="order-item">
-                            <img src="{{ asset('uploads/' . $product->product_image) }}" alt="{{ $product->product_name }}">
+                            <img src="{{ asset($product->product_image) }}" alt="{{ $product->product_name }}">
                             <div class="item-details">
                                 <p class="item-name">{{ $product->product_name }} - {{ $variant->color }}</p>
                                 <span class="item-qty">x{{ $item->quantity }}</span>
@@ -98,6 +98,7 @@
                 <button type="submit" class="btn btn-place-order" style="background-color: #d9534f; color: white; width: 100%; padding: 15px; border: none; font-weight: bold; font-size: 18px; margin-top: 20px; cursor: pointer; border-radius: 4px;">
                     ĐẶT HÀNG
                 </button>
+                
             </div>
         </form>
     </div>

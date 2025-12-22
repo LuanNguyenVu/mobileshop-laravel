@@ -12,6 +12,18 @@ class HomeController extends Controller
 {
     public function index()
     {
+        // 1. Lấy Banner cho Slider chính (display_location = 'Trang Chủ')
+        $sliderAds = Advertisement::where('status', 'Active')
+            ->where('display_location', 'Trang Chủ') // Đúng chính tả trong DB
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // 2. Lấy 2 Banner phía trên (display_location khác 'Trang Chủ')
+        $headerAds = Advertisement::where('status', 'Active')
+            ->where('display_location', '!=', 'Trang Chủ') // Lấy những cái còn lại
+            ->orderBy('created_at', 'desc')
+            ->take(2) // Chỉ lấy 2 cái mới nhất
+            ->get();
         // 1. Lấy Quảng cáo (Cache 30 phút)
         $advertisements = Cache::remember('home_ads', 1800, function () {
             return Advertisement::where('status', 'Active')
@@ -45,7 +57,7 @@ class HomeController extends Controller
             ->orderBy('created_at', 'desc') // Sắp xếp theo ngày tạo mới nhất
             ->take(10)
             ->get();
-        return view('home', compact('advertisements', 'posts', 'newProducts', 'featuredProducts'));
+        return view('home', compact('advertisements', 'posts', 'newProducts', 'featuredProducts','sliderAds', 'headerAds'));
     }
 
     public function about()

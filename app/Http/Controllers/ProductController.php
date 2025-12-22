@@ -42,6 +42,11 @@ class ProductController extends Controller
         } else {
             $query->latest();
         }
+        $headerAds = \App\Models\Advertisement::where('status', 'Active')
+        ->where('display_location', '!=', 'Trang Chủ') 
+        ->orderBy('created_at', 'desc')
+        ->take(2)
+        ->get();
 
         $products = $query->paginate(15)->withQueryString();
 
@@ -51,7 +56,7 @@ class ProductController extends Controller
         $product_types = ['Điện thoại', 'Tablet', 'Phụ kiện'];
         $current_brand = $request->brand ?? 'Tất cả';
 
-        return view('products.index', compact('products', 'brands', 'os_options', 'product_types', 'current_brand'));
+        return view('products.index', compact('products', 'brands', 'os_options', 'product_types', 'current_brand', 'headerAds'));
     }
 
     public function show($id)

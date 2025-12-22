@@ -34,15 +34,17 @@ class NewsController extends Controller
 
     public function show($slug)
     {
-        // Cache bài viết chi tiết 60 phút
-        $post = Cache::remember('post_detail_' . $slug, 3600, function () use ($slug) {
-            return Post::where('slug', $slug)
-                       ->where('status', 'Published')
-                       ->firstOrFail();
-        });
+        $post = Post::where('slug', $slug)->firstOrFail();
 
-        $latestProducts = $this->getSidebarProducts();
+        // Lấy bài viết liên quan (Trừ bài hiện tại, lấy 3 bài mới nhất)
+        $relatedPosts = Post::where('id', '!=', $post->id)
+                            ->orderBy('created_at', 'desc')
+                            ->take(3)
+                            ->get();
 
-        return view('news.show', compact('post', 'latestProducts'));
+        // Lấy sản phẩm cho sidebar (giữ nguyên logic cũ của bạn)
+        $latestProducts = Product::latest()->take(5)->get(); 
+
+        return view('news.show', compact('post', 'relatedPosts', 'latestProducts'));
     }
 }

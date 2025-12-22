@@ -33,7 +33,7 @@
                     <label class="form-label fw-bold">Vị Trí Hiển Thị</label>
                     <select name="display_location" class="form-select">
                         <option value="Trang Chủ">Trang Chủ</option>
-                        <option value="Sidebar">Sidebar Tin Tức</option>
+                        <option value="Sidebar">Sidebar</option>
                     </select>
                 </div>
                 

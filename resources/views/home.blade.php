@@ -3,30 +3,66 @@
 @section('title', 'Trang Chủ - MobileShop')
 
 @push('css')
-    {{-- Link CSS trang chủ --}}
     <link rel="stylesheet" href="{{ asset('client/assets/client/css/home.css') }}">
 @endpush
 
 @section('content')
 <div class="container">
-    {{-- PHẦN 1: BANNER VÀ TIN TỨC --}}
+    
+    {{-- === PHẦN MỚI: 2 BANNER QUẢNG CÁO TỰ ĐỘNG (Lấy từ DB) === --}}
+    @if($headerAds && $headerAds->count() > 0)
+    <div class="hero-promo-section">
+        @foreach($headerAds as $ad)
+            <div class="promo-card">
+                {{-- Link ảnh --}}
+                <a href="#" title="{{ $ad->title }}">
+                    <img src="{{ asset($ad->image_path) }}" alt="{{ $ad->title }}">
+                    
+                    {{-- Nội dung chữ (Nếu muốn hiện title lên ảnh) --}}
+                    <div class="promo-content">
+                        <h3>{{ Str::limit($ad->title, 25) }}</h3>
+                        {{-- Logic hiển thị nút nhỏ --}}
+                        <span style="background: #d70018; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">
+                            HOT DEAL
+                        </span>
+                    </div>
+                </a>
+            </div>
+        @endforeach
+
+        {{-- Nếu chỉ có 1 banner, hiển thị thêm 1 cái mặc định để layout không bị vỡ --}}
+        @if($headerAds->count() === 1)
+            <div class="promo-card">
+                <a href="#">
+                    <img src="https://images.unsplash.com/photo-1556656793-02715d8dd660?auto=format&fit=crop&w=1000&q=80" alt="Default Banner">
+                    <div class="promo-content">
+                        <h3>KHUYẾN MÃI ĐẶC BIỆT</h3>
+                        <span style="background: #d70018; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">XEM NGAY</span>
+                    </div>
+                </a>
+            </div>
+        @endif
+    </div>
+    @endif
+    {{-- === KẾT THÚC PHẦN MỚI === --}}
+
+    {{-- PHẦN 1: BANNER SLIDER VÀ TIN TỨC --}}
     <div class="top-section">
         
-        {{-- Banner Slider --}}
+        {{-- Main Slider (Sử dụng biến $sliderAds thay vì $advertisements cũ) --}}
         <div class="main-banner-area">
             <div class="slider-container">
-                @forelse($advertisements as $index => $ad)
+                @forelse($sliderAds as $index => $ad)
                     <div class="slide-item" data-index="{{ $index }}">
                         <a href="#" title="{{ $ad->title }}">
-                            <img src="{{ asset($ad->image_path ?? 'client/assets/client/images/no-image.jpg') }}" 
+                            <img src="{{ asset($ad->image_path) }}" 
                                  alt="{{ $ad->title }}" 
                                  class="slider-img">
                         </a>
                     </div>
                 @empty
-                    {{-- Banner mặc định nếu không có dữ liệu --}}
                     <div class="slide-item">
-                        <img src="https://via.placeholder.com/800x350?text=Welcome+MobileShop" class="slider-img">
+                        <img src="https://via.placeholder.com/800x350?text=Slider+Mac+Dinh" class="slider-img">
                     </div>
                 @endforelse
             </div>
@@ -35,7 +71,7 @@
             <button class="slider-next">&#10095;</button>
             
             <div class="slider-navigation">
-                @foreach($advertisements as $index => $ad)
+                @foreach($sliderAds as $index => $ad)
                     <div class="nav-item {{ $index === 0 ? 'active' : '' }}" data-index="{{ $index }}">
                         {{ $ad->title }}
                     </div>
@@ -43,15 +79,14 @@
             </div>
         </div>
         
-        {{-- Sidebar Tin tức --}}
+        {{-- Sidebar Tin tức (Giữ nguyên) --}}
         <div class="news-sidebar">
             <h3 class="sidebar-title">TIN CÔNG NGHỆ</h3>
             <ul class="post-list">
                 @forelse($posts as $post)
                     <li class="post-item-sidebar">
                         <a href="{{ route('news.show', $post->slug) }}">
-                            <img src="{{ asset($post->thumbnail_path ?? 'client/assets/client/images/no-image.jpg') }}" 
-                                 alt="{{ $post->title }}">
+                            <img src="{{ asset($post->thumbnail_path ?? 'client/assets/client/images/no-image.jpg') }}" alt="{{ $post->title }}">
                             <div class="post-details">
                                 <p class="post-titles">{{ Str::limit($post->title, 50) }}</p>
                                 <small class="post-date">{{ $post->created_at->format('d/m/Y') }}</small>
@@ -64,6 +99,9 @@
             </ul>
         </div>
     </div>
+
+    {{-- ... CÁC PHẦN SẢN PHẨM BÊN DƯỚI GIỮ NGUYÊN ... --}}
+    
     {{-- PHẦN 1.5: SLIDER SẢN PHẨM MỚI NHẤT --}}
     <div class="product-slider-section" style="margin-top: 40px; background: #fff; padding: 20px 20px 30px 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
         
@@ -187,7 +225,7 @@
                             <span class="current-price">{{ number_format($selling_price, 0, ',', '.') }}₫</span>
                         @endif
                     </p>
-                                                    
+                                                        
                     {{-- Tooltip khi hover --}}
                     <div class="product-specs-tooltip">
                         <div class="tooltip-header">CẤU HÌNH NỔI BẬT</div>
@@ -210,60 +248,48 @@
 </div>
 @endsection
 
-{{-- JAVASCRIPT CHO SLIDER --}}
-{{-- Lưu ý: Cần thêm @stack('scripts') vào file layouts/app.blade.php nếu chưa có --}}
 @push('scripts')
+{{-- Script cho Slider (Giữ nguyên) --}}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         let slideIndex = 0;
         const slides = document.querySelectorAll('.slide-item');
         const navItems = document.querySelectorAll('.nav-item');
         
-        // Kiểm tra nếu có slide thì mới chạy
         if (slides.length > 0) {
-            // Mặc định hiện slide đầu tiên
             slides[0].style.display = 'block';
             slides[0].classList.add('active');
             if(navItems[0]) navItems[0].classList.add('active');
 
-            // Hàm chuyển slide
             function showSlide(n) {
-                // Ẩn tất cả
                 slides.forEach(slide => {
                     slide.style.display = 'none';
                     slide.classList.remove('active');
                 });
                 navItems.forEach(item => item.classList.remove('active'));
                 
-                // Tính toán index mới
                 slideIndex = n;
                 if (slideIndex >= slides.length) slideIndex = 0;
                 if (slideIndex < 0) slideIndex = slides.length - 1;
                 
-                // Hiện slide mới
                 slides[slideIndex].style.display = 'block';
-                // Thêm timeout nhỏ để CSS animation chạy mượt
                 setTimeout(() => slides[slideIndex].classList.add('active'), 10);
                 
                 if(navItems[slideIndex]) navItems[slideIndex].classList.add('active');
             }
 
-            // Gán sự kiện click cho nút Next/Prev
             const nextBtn = document.querySelector('.slider-next');
             const prevBtn = document.querySelector('.slider-prev');
 
             if(nextBtn) nextBtn.addEventListener('click', () => showSlide(slideIndex + 1));
             if(prevBtn) prevBtn.addEventListener('click', () => showSlide(slideIndex - 1));
             
-            // Xử lý click vào Nav Item bên dưới
             navItems.forEach((item, index) => {
                 item.addEventListener('click', () => showSlide(index));
             });
 
-            // Auto play (3 giây chuyển 1 lần)
             let autoPlay = setInterval(() => showSlide(slideIndex + 1), 3000);
 
-            // Dừng auto play khi hover chuột vào slider
             const bannerArea = document.querySelector('.main-banner-area');
             if(bannerArea) {
                 bannerArea.addEventListener('mouseenter', () => clearInterval(autoPlay));
@@ -272,25 +298,23 @@
                 });
             }
         }
+        
         // --- JS CHO SLIDER SẢN PHẨM MỚI ---
         const track = document.getElementById('newProductTrack');
         const btnPrev = document.getElementById('btn-prev-new');
         const btnNext = document.getElementById('btn-next-new');
         
-        // Config
-        const cardWidth = 215; // 200px card + 15px gap
+        const cardWidth = 215; 
         let currentPosition = 0;
         
         if(track && btnPrev && btnNext) {
             btnNext.addEventListener('click', () => {
-                // Tính toán giới hạn trượt
                 const containerWidth = track.parentElement.offsetWidth;
-                const trackWidth = track.scrollWidth; // Tổng chiều dài thực tế
+                const trackWidth = track.scrollWidth; 
                 const maxTranslate = -(trackWidth - containerWidth);
 
                 currentPosition -= cardWidth; 
                 
-                // Nếu trượt quá giới hạn thì quay về đầu
                 if (currentPosition < maxTranslate) {
                     currentPosition = 0; 
                 }
@@ -301,7 +325,6 @@
                 currentPosition += cardWidth;
                 
                 if (currentPosition > 0) {
-                    // Nếu đang ở đầu mà bấm lùi -> thì không làm gì hoặc quay về cuối
                     currentPosition = 0; 
                 }
                 track.style.transform = `translateX(${currentPosition}px)`;
