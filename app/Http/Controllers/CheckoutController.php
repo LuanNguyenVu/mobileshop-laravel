@@ -23,125 +23,179 @@ class CheckoutController extends Controller
     }
 
     // 1. Hiển thị trang Thanh Toán
-    public function index()
-    {
-        if (!Auth::check()) {
-            return redirect()->route('login')->with('error', 'Vui lòng đăng nhập để thanh toán.');
-        }
+public function index()
+{
+    if (!Auth::check()) {
+        return redirect()->route('login')->with('error', 'Vui lòng đăng nhập để thanh toán.');
+    }
 
+    $cartItems = collect([]); // Khởi tạo Collection rỗng
+    $totalAmount = 0;
+    $isBuyNow = false; // Biến cờ để nhận biết đang mua ngay hay mua thường
+
+    // --- TRƯỜNG HỢP 1: CÓ SESSION MUA NGAY ---
+    if (session()->has('buy_now_data')) {
+        $sessionData = session()->get('buy_now_data');
+        $variant = ProductVariant::with('product')->find($sessionData['variant_id']);
+
+        if ($variant) {
+            // Giả lập một đối tượng giống CartItem để View không bị lỗi
+            $fakeItem = new \stdClass();
+            $fakeItem->product_variant_id = $variant->id;
+            $fakeItem->quantity = $sessionData['quantity'];
+            $fakeItem->variant = $variant; // Gắn quan hệ variant vào
+
+            $cartItems->push($fakeItem);
+            $isBuyNow = true;
+        }
+    } 
+    // --- TRƯỜNG HỢP 2: LẤY TỪ GIỎ HÀNG (DATABASE) ---
+    else {
         $cart = $this->getCart();
-        $cartItems = $cart ? $cart->items()->with('variant.product')->get() : collect([]);
+        if ($cart) {
+            $cartItems = $cart->items()->with('variant.product')->get();
+        }
+    }
 
-        if ($cartItems->isEmpty()) {
-            return redirect()->route('cart.index')->with('error', 'Giỏ hàng trống!');
+    // Kiểm tra rỗng
+    if ($cartItems->isEmpty()) {
+        return redirect()->route('cart.index')->with('error', 'Không có sản phẩm nào để thanh toán!');
+    }
+
+    // Tính tổng tiền (Dùng chung cho cả 2 trường hợp)
+    foreach ($cartItems as $item) {
+        $variant = $item->variant;
+        $price = ($variant->promotional_price > 0 && $variant->promotional_price < $variant->selling_price) 
+                    ? $variant->promotional_price 
+                    : $variant->selling_price;
+        $totalAmount += $item->quantity * $price;
+    }
+
+    $shippingFee = 30000;
+    $finalTotal = $totalAmount + $shippingFee;
+
+    // Truyền biến $isBuyNow sang view để hiển thị thông báo nếu cần
+    return view('checkout.index', compact('cartItems', 'totalAmount', 'shippingFee', 'finalTotal', 'isBuyNow'));
+}
+
+public function placeOrder(Request $request)
+{
+    $request->validate([
+        'name' => 'required',
+        'phone' => 'required',
+        'address' => 'required',
+        'payment_method' => 'required'
+    ]);
+
+    DB::beginTransaction();
+    try {
+        $itemsToProcess = [];
+        $isBuyNowOrder = false;
+
+        // 1. XÁC ĐỊNH NGUỒN DỮ LIỆU (Session hay Database)
+        if (session()->has('buy_now_data')) {
+            // Lấy từ Session
+            $sessionData = session()->get('buy_now_data');
+            $variant = ProductVariant::lockForUpdate()->find($sessionData['variant_id']);
+            
+            // Validate lại tồn kho
+            if (!$variant || $sessionData['quantity'] > $variant->quantity) {
+                throw new \Exception("Sản phẩm này vừa hết hàng hoặc không đủ số lượng.");
+            }
+
+            // Tạo item giả lập
+            $fakeItem = new \stdClass();
+            $fakeItem->variant = $variant;
+            $fakeItem->quantity = $sessionData['quantity'];
+            $fakeItem->product_variant_id = $variant->id;
+            
+            $itemsToProcess[] = $fakeItem;
+            $isBuyNowOrder = true;
+
+        } else {
+            // Lấy từ Giỏ hàng DB
+            $cart = $this->getCart();
+            $itemsFromCart = $cart->items()->with('variant.product')->get();
+            
+            if ($itemsFromCart->isEmpty()) {
+                return back()->with('error', 'Giỏ hàng trống!');
+            }
+
+            foreach($itemsFromCart as $cartItem) {
+                // Lock để check kho
+                $variant = ProductVariant::lockForUpdate()->find($cartItem->product_variant_id);
+                if ($cartItem->quantity > $variant->quantity) {
+                    throw new \Exception("Sản phẩm {$variant->product->product_name} không đủ hàng.");
+                }
+                $cartItem->variant = $variant; // Gán lại variant đã lock
+                $itemsToProcess[] = $cartItem;
+            }
         }
 
-        // Tính tổng tiền
+        // 2. TÍNH TỔNG TIỀN LẠI (Backend phải tính, ko tin tưởng Frontend)
         $totalAmount = 0;
-        foreach ($cartItems as $item) {
+        foreach ($itemsToProcess as $item) {
             $variant = $item->variant;
-            $price = ($variant->promotional_price > 0) ? $variant->promotional_price : $variant->selling_price;
+            $price = ($variant->promotional_price > 0 && $variant->promotional_price < $variant->selling_price) 
+                        ? $variant->promotional_price 
+                        : $variant->selling_price;
             $totalAmount += $item->quantity * $price;
         }
+        $finalTotal = $totalAmount + 30000; // + Phí ship
 
-        $shippingFee = 30000; // Phí ship cố định (hoặc logic tính riêng)
-        $finalTotal = $totalAmount + $shippingFee;
-
-        return view('checkout.index', compact('cartItems', 'totalAmount', 'shippingFee', 'finalTotal'));
-    }
-
-// --- 2. XỬ LÝ ĐẶT HÀNG (LOGIC MỚI - CHẶT CHẼ HƠN) ---
-    public function placeOrder(Request $request)
-    {
-        $request->validate([
-            'name' => 'required',
-            'phone' => 'required',
-            'address' => 'required',
-            'payment_method' => 'required'
+        // 3. TẠO ORDER
+        $order = Order::create([
+            'user_id' => Auth::id(),
+            'order_code' => 'ORD-' . strtoupper(Str::random(10)),
+            'receiver_name' => $request->name,
+            'receiver_phone' => $request->phone,
+            'receiver_email' => $request->email ?? Auth::user()->email,
+            'receiver_address' => $request->address,
+            'note' => $request->notes,
+            'total_amount' => $finalTotal,
+            'payment_method' => $request->payment_method,
+            'order_status' => 'Pending'
         ]);
 
-        $cart = $this->getCart();
-        $cartItems = $cart->items()->with('variant.product')->get();
+        // 4. TẠO ORDER DETAILS & TRỪ KHO
+        foreach ($itemsToProcess as $item) {
+            $variant = $item->variant;
+            $price = ($variant->promotional_price > 0 && $variant->promotional_price < $variant->selling_price) 
+                        ? $variant->promotional_price 
+                        : $variant->selling_price;
 
-        if ($cartItems->isEmpty()) {
-            return back()->with('error', 'Giỏ hàng trống!');
-        }
-
-        // Bắt đầu Transaction (Nếu có 1 lỗi nhỏ, hủy toàn bộ thao tác để tránh sai lệch tiền/hàng)
-        DB::beginTransaction();
-        try {
-            
-            // --- BƯỚC 1: KIỂM TRA TỒN KHO LẦN CUỐI (QUAN TRỌNG NHẤT) ---
-            $totalAmount = 0;
-            foreach ($cartItems as $item) {
-                // Dùng lockForUpdate để khóa dòng dữ liệu này lại, không cho ai mua tranh trong lúc đang xử lý
-                $variant = ProductVariant::lockForUpdate()->find($item->product_variant_id);
-
-                if (!$variant) {
-                    throw new \Exception("Sản phẩm trong giỏ hàng không còn tồn tại.");
-                }
-
-                // Nếu số lượng trong giỏ > Số lượng thực tế trong kho
-                if ($item->quantity > $variant->quantity) {
-                    throw new \Exception("Sản phẩm '" . $variant->product->product_name . " - " . $variant->color . "' hiện chỉ còn " . $variant->quantity . " cái. Vui lòng cập nhật lại giỏ hàng.");
-                }
-
-                // Tính tiền luôn tại đây
-                $price = ($variant->promotional_price > 0 && $variant->promotional_price < $variant->selling_price) 
-                            ? $variant->promotional_price 
-                            : $variant->selling_price;
-                $totalAmount += $item->quantity * $price;
-            }
-
-            $shippingFee = 30000;
-            $finalTotal = $totalAmount + $shippingFee;
-
-            // --- BƯỚC 2: TẠO ĐƠN HÀNG ---
-            $order = Order::create([
-                'user_id' => Auth::id(),
-                'order_code' => 'ORD-' . strtoupper(Str::random(10)),
-                'receiver_name' => $request->name,
-                'receiver_phone' => $request->phone,
-                'receiver_email' => $request->email ?? Auth::user()->email,
-                'receiver_address' => $request->address,
-                'note' => $request->notes,
-                'total_amount' => $finalTotal,
-                'payment_method' => $request->payment_method,
-                'order_status' => 'Pending'
+            OrderDetail::create([
+                'order_id' => $order->id,
+                'product_variant_id' => $variant->id,
+                'product_name' => $variant->product->product_name,
+                'variant_color' => $variant->color,
+                'quantity' => $item->quantity,
+                'price_at_order' => $price
             ]);
 
-            // --- BƯỚC 3: TẠO CHI TIẾT & TRỪ KHO ---
-            foreach ($cartItems as $item) {
-                $variant = $item->variant; // Lúc này đã an toàn vì đã check ở Bước 1
+            $variantToUpdate = ProductVariant::find($item->product_variant_id);
                 
-                // Lấy giá tại thời điểm mua (đề phòng admin vừa đổi giá)
-                $price = ($variant->promotional_price > 0 && $variant->promotional_price < $variant->selling_price) 
-                            ? $variant->promotional_price 
-                            : $variant->selling_price;
-
-                OrderDetail::create([
-                    'order_id' => $order->id,
-                    'product_variant_id' => $variant->id,
-                    'product_name' => $variant->product->product_name,
-                    'variant_color' => $variant->color,
-                    'quantity' => $item->quantity,
-                    'price_at_order' => $price
-                ]);
-                
-                // TRỪ KHO NGAY LẬP TỨC
-                $variant->decrement('quantity', $item->quantity);
-            }
-
-            // --- BƯỚC 4: XÓA GIỎ HÀNG ---
-            $cart->items()->delete();
-
-            DB::commit(); // Xác nhận mọi thứ ok -> Lưu xuống DB
-
-            return redirect()->route('home')->with('success', 'Đặt hàng thành công! Mã đơn: ' . $order->order_code);
-
-        } catch (\Exception $e) {
-            DB::rollBack(); // Có lỗi -> Hoàn tác tất cả (không tạo đơn, không trừ kho)
-            return back()->with('error', 'Lỗi đặt hàng: ' . $e->getMessage());
+                if ($variantToUpdate) {
+                    $variantToUpdate->decrement('quantity', $item->quantity);
+                }
         }
+
+        // 5. DỌN DẸP (Quan trọng)
+        if ($isBuyNowOrder) {
+            // Nếu là mua ngay -> Chỉ xóa session, KHÔNG xóa giỏ hàng
+            session()->forget('buy_now_data');
+        } else {
+            // Nếu mua từ giỏ -> Xóa giỏ hàng
+            $this->getCart()->items()->delete();
+        }
+
+        DB::commit();
+        return redirect()->route('home')->with('success', 'Đặt hàng thành công!');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return back()->with('error', 'Lỗi: ' . $e->getMessage());
     }
+    return redirect()->route('home')->with('success', 'Đặt hàng thành công! Mã đơn: ' . $order->order_code);
+}
 }

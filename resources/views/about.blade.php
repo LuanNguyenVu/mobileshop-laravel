@@ -82,7 +82,7 @@
             
             <div class="team-grid">
                 <div class="team-member" data-aos="flip-left">
-                    <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80" class="member-img" alt="CEO">
+                    <img src="{{ asset('client/assets/client/images/luan.jpg') }}" class="member-img" alt="CEO">
                     <div class="member-info">
                         <h4>Nguyễn Vũ Luân</h4>
                         <p>Founder & CEO</p>
@@ -90,17 +90,17 @@
                 </div>
 
                 <div class="team-member" data-aos="flip-left" data-aos-delay="100">
-                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80" class="member-img" alt="CTO">
+                    <img src="{{ asset('client/assets/client/images/cto.jpg') }}" class="member-img" alt="CTO">
                     <div class="member-info">
-                        <h4>Trần Thị Mai</h4>
+                        <h4>Huỳnh Thị Thanh Uyên</h4>
                         <p>Giám đốc Sản phẩm</p>
                     </div>
                 </div>
 
                 <div class="team-member" data-aos="flip-left" data-aos-delay="200">
-                    <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80" class="member-img" alt="CMO">
+                    <img src="{{ asset('client/assets/client/images/cmo.jpg') }}" class="member-img" alt="CMO">
                     <div class="member-info">
-                        <h4>Lê Văn Minh</h4>
+                        <h4>Lê Đăng Nhật</h4>
                         <p>Trưởng phòng CSKH</p>
                     </div>
                 </div>

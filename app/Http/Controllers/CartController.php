@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\ProductVariant;
@@ -112,19 +113,42 @@ class CartController extends Controller
     }
 
     // --- 3. MUA NGAY ---
-    public function buyNow(Request $request)
-    {
-        $response = $this->add($request);
-        $data = $response->getData();
-
-        if ($data->status === 'success') {
-            return response()->json([
-                'status' => 'success',
-                'redirect' => route('checkout') 
-            ]);
-        }
-        return $response;
+public function buyNow(Request $request)
+{
+    // 1. Kiểm tra đăng nhập
+    if (!Auth::check()) {
+        return response()->json(['status' => 'error', 'message' => 'Vui lòng đăng nhập để mua hàng!']);
     }
+
+    $variantId = $request->input('variant_id');
+    $quantity = (int)$request->input('quantity');
+
+    // 2. Validate dữ liệu
+    $variant = ProductVariant::with('product')->find($variantId);
+    if (!$variant) {
+        return response()->json(['status' => 'error', 'message' => 'Sản phẩm không tồn tại!']);
+    }
+
+    if ($quantity > $variant->quantity) {
+        return response()->json(['status' => 'error', 'message' => 'Kho không đủ hàng!']);
+    }
+
+    // 3. LƯU VÀO SESSION (Thay vì lưu vào Database)
+    // Tạo một mảng dữ liệu tạm thời
+    $buyNowItem = [
+        'variant_id' => $variantId,
+        'quantity' => $quantity,
+    ];
+
+    // Đặt vào session với key là 'buy_now_data'
+    session()->put('buy_now_data', $buyNowItem);
+
+    // 4. Trả về link chuyển hướng
+    return response()->json([
+        'status' => 'success',
+        'redirect' => route('checkout') // Route trang thanh toán
+    ]);
+}
 
     // --- 4. CẬP NHẬT SỐ LƯỢNG ---
     public function update(Request $request)

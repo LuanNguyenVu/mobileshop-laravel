@@ -156,5 +156,70 @@
 
     <script src="{{ asset('client/assets/client/js/main.js') }}"></script>
     @stack('scripts') @yield('scripts') @section('scripts')
+    {{-- === 1. ALERT THÔNG BÁO THÀNH CÔNG/LỖI === --}}
+    @if(session('success'))
+        <div class="custom-alert alert-success" id="success-alert">
+            <i class="fas fa-check-circle"></i> {{ session('success') }}
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="custom-alert alert-danger" id="error-alert">
+            <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
+        </div>
+    @endif
+
+    {{-- === 2. CSS CHO ALERT (Nên đưa vào file CSS riêng, nhưng để đây cho tiện) === --}}
+    <style>
+        .custom-alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.5s ease-out, fadeOut 0.5s ease-in 4.5s forwards;
+            font-weight: 500;
+            min-width: 300px;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border-left: 5px solid #28a745;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-left: 5px solid #dc3545;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; visibility: hidden; }
+        }
+    </style>
+
+    {{-- === 3. SCRIPT TỰ ĐỘNG ẨN SAU 5 GIÂY === --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                var alerts = document.querySelectorAll('.custom-alert');
+                alerts.forEach(function(alert) {
+                    alert.style.display = 'none';
+                });
+            }, 3000); // 3000ms = 3 giây
+        });
+    </script>
 </body>
 </html>
